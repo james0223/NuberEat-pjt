@@ -10,6 +10,10 @@ import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
+    // You install and config a module here and this tells nestjs what modules you possess
+    // By doing so, they can be called upon in the subsidary modules and be used there!
+    // The services of subsidiary modules need to call them inside the constructor to use them
+    // This is called dependency injection
     ConfigModule.forRoot({
       isGlobal: true, // allows us to access config module from all around the app
       envFilePath: process.env.NODE_ENV === "dev" ? ".env.dev" : ".env.test", //selecting the env - if dev then use .env.dev if not use .env.test
@@ -21,6 +25,7 @@ import { UsersModule } from './users/users.module';
         DB_USERNAME: Joi.string().required(),
         DB_PASSWORD: Joi.string().required(),
         DB_NAME: Joi.string().required(),
+        SECRET_KEY: Joi.string().required()
       }) // with the help of joi, we can validate env variables + increases security by even validating environment variables
     }),
     GraphQLModule.forRoot({ // forRoot configures a root module

@@ -4,6 +4,8 @@ import { Repository } from "typeorm";
 import { CreateAccountInput } from "./dtos/create-account.dto";
 import { LoginInput } from "./dtos/login.dto";
 import { User } from "./entities/user.entity";
+import * as jwt from "jsonwebtoken"
+import { ConfigService } from "@nestjs/config";
 
 // Service handles functions and errors
 
@@ -12,7 +14,9 @@ import { User } from "./entities/user.entity";
 @Injectable()
 export class UserService {
     constructor(
-        @InjectRepository(User) private readonly users: Repository<User>
+        @InjectRepository(User) private readonly users: Repository<User>,
+        // By importing ConfigService from users.module, ConfigService can now be called here
+        private readonly config: ConfigService,
     ) {}
     
     async createAccount({
@@ -56,6 +60,7 @@ export class UserService {
                     error: "Wrong Password"
                 }
             }
+            const token = jwt.sign({id: user.id}, this.config.get("SECRET_KEY"))
             return {
                 ok: true,
                 token: "hey"
