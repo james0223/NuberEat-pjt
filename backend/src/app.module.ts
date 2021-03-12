@@ -3,13 +3,12 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule} from "@nestjs/typeorm"
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from "joi" // cannot use import Joi from "joi" because it is not a file made in typescript or nestjs way
-import { Restaurant } from './restaurants/entities/restaurant.entity';
-import { CommonModule } from './common/common.module';
 import { User } from './users/entities/user.entity';
 import { UsersModule } from './users/users.module';
 import { JwtModule } from './jwt/jwt.module';
 import { JwtMiddleware } from './jwt/jwt.middleware';
-import { AuthModule } from './auth/auth.module';
+import { Verification } from './users/entities/verification.entity';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -28,7 +27,10 @@ import { AuthModule } from './auth/auth.module';
         DB_USERNAME: Joi.string().required(),
         DB_PASSWORD: Joi.string().required(),
         DB_NAME: Joi.string().required(),
-        PRIVATE_KEY: Joi.string().required()
+        PRIVATE_KEY: Joi.string().required(),
+        MAILGUN_API_KEY: Joi.string().required(),
+        MAILGUN_DOMAIN_NAME: Joi.string().required(),
+        MAILGUN_FROM_EMAIL: Joi.string().required()
       }) // with the help of joi, we can validate env variables + increases security by even validating environment variables
     }),
     GraphQLModule.forRoot({ // forRoot configures a root module
@@ -45,12 +47,17 @@ import { AuthModule } from './auth/auth.module';
       database: process.env.DB_NAME,
       synchronize: process.env.NODE_ENV !== "prod", // when set to true, TypeORM when connects to database, it migrates the database based on your modules
       logging: process.env.NODE_ENV == "prod", // See on the console what is happening on the database
-      entities: [User] // by adding Restaurants to the entities, the restaurant table can be created in DB
+      entities: [User, Verification] // by adding created entities to this list, the tables of those entities can be created in DB
     }),
     JwtModule.forRoot({
       privateKey: process.env.PRIVATE_KEY
     }),
     UsersModule,
+    MailModule.forRoot({
+      apiKey: process.env.MAILGUN_API_KEY,
+      domain: process.env.MAILGUN_DOMAIN_NAME,
+      fromEmail: process.env.MAILGUN_FROM_EMAIL
+    }),
   ],
   controllers: [],
   providers: [],
