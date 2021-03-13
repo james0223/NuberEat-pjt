@@ -10,11 +10,11 @@ export class MailService {
         @Inject(CONFIG_OPTIONS) private readonly options: MailModuleOptions
     ) {}
     
-    private async sendEmail(
+    async sendEmail(
         subject: string,
         template: string, 
         emailVars: EmailVar[],
-        ) {
+        ): Promise<boolean> {
         const form = new FormData() // form을 생성하고 자료를 넣는다
         form.append("from", `James from NuberEats <mailgun@${this.options.domain}>`)
         form.append("to", `james98403@naver.com`)
@@ -22,8 +22,7 @@ export class MailService {
         form.append("template", template)
         emailVars.forEach((eVar) => form.append(`v:${eVar.key}`, eVar.value))
         try {
-            await got(`https://api.mailgun.net/v3/${this.options.domain}/messages`, {
-                method: "POST",
+            await got.post(`https://api.mailgun.net/v3/${this.options.domain}/messages`, {
                 headers: {
                     "Authorization": `Basic ${Buffer.from(
                         `api:${this.options.apiKey}`,
@@ -31,8 +30,9 @@ export class MailService {
                 }, // mailgun에 요청을 보내기 위한 헤더 형태
                 body: form // mailgun에서 body를 form형태로 보내달라고 요구하므로 form-data 라이브러리를 설치하여 form을 전송
             })
+            return true
         } catch (e) {
-            console.log(e)
+            return false
         }
     }
 
