@@ -47,3 +47,31 @@
 
 
 
+
+
+## 2. E2E(End to End) Testing 
+
+- Resolver를 테스트함
+- NEST는 test 폴더에 E2E test를 위한 파일을 준비해줌
+- 이를 각 모듈에 맞게 새로 생성하고 이름바꿔서 테스트하면 댐
+- 특이점이라면 전체 Appmodule을 import해서 사용한다는 것
+- e2e의 테스트를 위한 설정은 test폴더 내의 jest-e2e.json을 활용한다
+
+```json
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": ".",
+  "testEnvironment": "node",
+  "testRegex": ".e2e-spec.ts$",
+  "transform": {
+    "^.+\\.(t|j)s$": "ts-jest"
+  },
+  "moduleNameMapper": {
+    "^src/(.*)$": ["<rootDir>/../src/$1"]
+  } // rootDir이 "."으로 설정되어있는데 그곳은 바로 test폴더 내부이다
+    // 따라서 위로 한번 나가서 src로 들어간 후, 해당 경로를 따라가도록 설정해주어야 한다
+}
+```
+
+
+

@@ -21,7 +21,9 @@ import { MailModule } from './mail/mail.module';
       envFilePath: process.env.NODE_ENV === "dev" ? ".env.dev" : ".env.test", //selecting the env - if dev then use .env.dev if not use .env.test
       ignoreEnvFile: process.env.NODE_ENV === "prod", //when in production mode, it will ignore env files
       validationSchema: Joi.object({
-        NODE_ENV: Joi.string().valid("dev", "prod").required(),
+        // npm run test를 하게되면 NODE_ENV가 위의 설정에 따라 .env.test가 된다
+        NODE_ENV: Joi.string().valid("dev", "prod", "test")
+        .required(),
         DB_HOST: Joi.string().required(),
         DB_PORT: Joi.string().required(),
         DB_USERNAME: Joi.string().required(),
@@ -46,7 +48,7 @@ import { MailModule } from './mail/mail.module';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       synchronize: process.env.NODE_ENV !== "prod", // when set to true, TypeORM when connects to database, it migrates the database based on your modules
-      logging: process.env.NODE_ENV == "prod", // See on the console what is happening on the database
+      logging: process.env.NODE_ENV !== "prod" && process.env.NODE_ENV !== "test", // See on the console what is happening on the database
       entities: [User, Verification] // by adding created entities to this list, the tables of those entities can be created in DB
     }),
     JwtModule.forRoot({
