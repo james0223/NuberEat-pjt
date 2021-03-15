@@ -7,12 +7,11 @@
 1. Client측에서 request를 보낼 때 header에 token을 담아서 보냄
 2. header는 http 기술이므로 그 기술을 사용하기 위해 middleware를 생성했음
    - 프로젝트내의 jwtmiddleware
+   - **이 jwtmiddleware는 미들웨어이기 때문에 다른 resolver들보다 먼저 request에 접근하고, 해당 request의 형태를 변형할 수 있음**
+   - jwtmiddleware에 의해 업데이트된 request를 모든 resolver에서 접하게 되는 것이다
 3. 이 middleware는 우리가 만든 jwtService.verify()를 사용하여 해당 token을 decode함
-4. decode과정을 통해 반환된 값 중 id가 있다면 제대로 된 token임을 증명하는 것이며, 해당 id값을 통해 요청을 보낸 유저를 찾아냄 - userService의 findById() - 해당 함수는 typeorm의 findOne()함수 사용
-5. 만약 유저가 있다면 그 유저를 request.object에 붙여서 보냄
-6. 이 jwtmiddleware는 미들웨어이기 때문에 다른 resolver들보다 먼저 request에 접근하고, 해당 request의 형태를 변형할 수 있음
-7. jwtmiddleware에 의해 업데이트된 request를 모든 resolver가 활용할 수 있게 되는 것
-
+4. token의 decode과정을 통해 반환된 값 중 id가 있다면 제대로 된 token임을 증명하는 것이며, 해당 id값을 통해 요청을 보낸 유저를 찾아냄 - userService의 findById() - 해당 함수는 typeorm의 findOne()함수 사용
+5. 만약 유저가 있다면 그 유저를 request.object에 붙여서 request를 마저 진행시키고 없으면 그대로 보냄
 8. 만약 토큰이 잘못되었거나 존재하지 않는 유저라면 request에 그 어떤 것도 붙여보내지 않게 되므로 resolver에서는 이에 근거하여 어떤 식으로 반응을 할 지 결정할 수 있게 됨
 
 

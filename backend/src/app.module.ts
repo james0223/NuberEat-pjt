@@ -9,6 +9,10 @@ import { JwtModule } from './jwt/jwt.module';
 import { JwtMiddleware } from './jwt/jwt.middleware';
 import { Verification } from './users/entities/verification.entity';
 import { MailModule } from './mail/mail.module';
+import { Restaurant } from './restaurants/entities/restaurant.entity';
+import { Category } from './restaurants/entities/category.entity';
+import { RestaurantsModule } from './restaurants/restaurants.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -49,12 +53,14 @@ import { MailModule } from './mail/mail.module';
       database: process.env.DB_NAME,
       synchronize: process.env.NODE_ENV !== "prod", // when set to true, TypeORM when connects to database, it migrates the database based on your modules
       logging: process.env.NODE_ENV !== "prod" && process.env.NODE_ENV !== "test", // See on the console what is happening on the database
-      entities: [User, Verification] // by adding created entities to this list, the tables of those entities can be created in DB
+      entities: [User, Verification, Restaurant, Category] // by adding created entities to this list, the tables of those entities can be created in DB
     }),
     JwtModule.forRoot({
       privateKey: process.env.PRIVATE_KEY
     }),
+    AuthModule,
     UsersModule,
+    RestaurantsModule,
     MailModule.forRoot({
       apiKey: process.env.MAILGUN_API_KEY,
       domain: process.env.MAILGUN_DOMAIN_NAME,

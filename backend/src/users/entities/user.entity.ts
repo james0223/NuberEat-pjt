@@ -1,19 +1,26 @@
 import { Field, InputType, ObjectType, registerEnumType } from "@nestjs/graphql"
 import { CoreEntity } from "src/common/entities/core.entity"
-import { BeforeInsert, BeforeUpdate, Column, Entity } from "typeorm"
+import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany } from "typeorm"
 import * as bcrypt from "bcrypt"
 import { InternalServerErrorException } from "@nestjs/common"
-import { IsEmail, IsEnum} from "class-validator"
+import { IsBoolean, IsEmail, IsEnum, IsString} from "class-validator"
+import { Restaurant } from "src/restaurants/entities/restaurant.entity"
 
-enum UserRole {
-    Client,
-    Owner,
-    Delivery
+export enum UserRole {
+    Client = "Client", // string을 부여해주면 더 이상 0, 1, 2 로 선언되지 않고 string이 됨
+    Owner = "Owner",
+    Delivery = "Delivery"
 } // for database enum
 
 registerEnumType(UserRole, {name: "UserRole"}) // for graphql enum
 
-@InputType({ isAbstract: true })
+// Type별 용도
+// InputType은 하나의 object로, argument 로써 graphql에 inputdata를 전달하기 위한 용도이다. 즉 사용자의 input 데이터를 하나의 object로 묶어 graphql에 전달함
+// ArgsType은 InputType과 비슷하나, 이들을 하나의 object로 묶지 않고 개별적으로 전달해준다
+
+// The isAbstract: true property indicates that SDL (Schema Definition Language statements) shouldn't be generated for this class. 
+// Note, you can set this property for other types as well to suppress SDL generation.
+@InputType("UserInputType", { isAbstract: true })
 @ObjectType()
 @Entity()
 export class User extends CoreEntity {
@@ -24,6 +31,7 @@ export class User extends CoreEntity {
 
     @Column({ select: false }) // request에 답변보낼 때 password 필드는 명시적으로 요청하지 않는 한 반환해주지 않음
     @Field(type => String)
+    @IsString()
     password: string
 
     @Column(
@@ -35,7 +43,15 @@ export class User extends CoreEntity {
 
     @Column({default: false})
     @Field(type => Boolean)
+    @IsBoolean()
     verified: boolean
+
+    @Field(type => [Restaurant])
+    @OneToMany(
+        type => Restaurant, 
+        restaurant => restaurant.owner
+    )
+    restaurants: Restaurant[]
 
     // Use bcrypt module to hash passwords
     @BeforeInsert() // before this entity is saved into database
