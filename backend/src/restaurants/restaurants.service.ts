@@ -1,16 +1,20 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "src/users/entities/user.entity";
-import { Like, Repository } from "typeorm";
+import { Repository } from "typeorm";
 import { AllCategoriesOutput } from "./dtos/all-categories.dto";
 import { CategoryInput, CategoryOutput } from "./dtos/category.dto";
+import { CreateDishInput, CreateDishOutput } from "./dtos/create-dish.dto";
 import { CreateRestaurantInput, CreateRestaurantOutput } from "./dtos/create-restaurant.dto";
+import { DeleteDishInput, DeleteDishOutput } from "./dtos/delete-dish.dto";
 import { DeleteRestaurantInput, DeleteRestaurantOutput } from "./dtos/delete-restaurant.dto";
 import { EditRestaurantInput, EditRestaurantOutput } from "./dtos/edit-restaurant.dto";
+import { EditDishInput, EditDishOutput } from "./dtos/eidt-dish.dto";
 import { RestaurantInput, RestaurantOutput } from "./dtos/restaurant.dto";
 import { RestaurantsInput, RestaurantsOutput } from "./dtos/restaurants.dto";
 import { SearchRestaurantInput, SearchRestaurantOutput } from "./dtos/search-restaurant.dto";
 import { Category } from "./entities/category.entity";
+import { Dish } from "./entities/dish.entity";
 import { Restaurant } from "./entities/restaurant.entity";
 import { CategoryRepository } from "./repositories/category.repository";
 import { RestaurantRepository } from "./repositories/restaurant-pagin.repository";
@@ -23,9 +27,9 @@ export class RestaurantService {
     constructor(
         // Inject the repository of a Restaurant entity
         // This allows the use of "this" in methods - methods: functions in classes are called methods
-        @InjectRepository(Restaurant)
         private readonly restaurants: RestaurantRepository, // restaurants is the repository for Restaurant entity
-        
+        @InjectRepository(Dish)
+        private readonly dishes: Repository<Dish>,
         // @InjectRepository(Category) => Custom repo에는 repository를 inject 할 필요 없음
         private readonly categories: CategoryRepository // 새로 만들어낸 custom repository
         ) {} 
@@ -195,7 +199,9 @@ export class RestaurantService {
 
     async findRestaurantById({restaurantId}: RestaurantInput): Promise<RestaurantOutput> {
         try {
-            const restaurant = await this.restaurants.findOne(restaurantId)
+            const restaurant = await this.restaurants.findOne(restaurantId, {
+                relations:["menu"] // 이걸 엮어줘야 restaurant를 검색할 때, menu를 불러올 수 있기 때문
+            })
             if (!restaurant){
                 return {
                     ok: false,
@@ -231,4 +237,89 @@ export class RestaurantService {
         }
     }
     /// IMPORTANT: update function gets executed even if the entity of the given criteria does not exist inside the database!
+
+    async createDish(owner: User, createDishInput: CreateDishInput): Promise<CreateDishOutput>{
+        try {
+            const restaurant = await this.restaurants.findOne(createDishInput.restaurantId)
+        if (!restaurant) {
+            return {
+                ok: false,
+                error: "Restaurant not found"
+            }
+        }
+        if (owner.id !== restaurant.ownerId){
+            return {
+                ok: false,
+                error: "You are not the owner of this restaurant"
+            }
+        }
+        const dish = await this.dishes.save(this.dishes.create({...createDishInput, restaurant}))
+        console.log(dish)
+        return {
+            ok: true
+        }
+        } catch (e){
+            return {
+                ok: false,
+                error: "Could not create dish"
+            }
+        }
+    }
+
+    async editDish(owner: User, editDishInput: EditDishInput): Promise<EditDishOutput>{
+        try {
+            const dish = await this.dishes.findOne(editDishInput.dishId)
+        if (!dish) {
+            return {
+                ok: false,
+                error: "Dish not found"
+            }
+        }
+        if (owner.id !== dish.restaurant.ownerId){
+            return {
+                ok: false,
+                error: "You are not the owner of this restaurant"
+            }
+        }
+        await this.dishes.save([{
+            id: editDishInput.dishId,
+            ...editDishInput
+        }])
+        return {
+            ok: true
+        }
+        } catch (e){
+            return {
+                ok: false,
+                error: "Could not edit dish"
+            }
+        }
+    }
+
+    async deleteDish(owner: User, {dishId}: DeleteDishInput): Promise<DeleteDishOutput>{
+        try {
+            const dish = await this.dishes.findOne(dishId, {relations: ["restaurant"]})
+        if (!dish) {
+            return {
+                ok: false,
+                error: "Dish not found"
+            }
+        }
+        if (owner.id !== dish.restaurant.ownerId){
+            return {
+                ok: false,
+                error: "You are not the owner of this dish"
+            }
+        }
+        await this.dishes.delete(dishId)
+        return {
+            ok: true
+        }
+        } catch (e){
+            return {
+                ok: false,
+                error: "Could not delete dish"
+            }
+        }
+    }
 }

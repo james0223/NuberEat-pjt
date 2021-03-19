@@ -1,9 +1,11 @@
 import { Field, InputType, ObjectType } from "@nestjs/graphql";
 import { IsString, Length } from "class-validator";
 import { CoreEntity } from "src/common/entities/core.entity";
+import { Order } from "src/orders/entities/order.entity";
 import { User } from "src/users/entities/user.entity";
-import { Column, Entity, ManyToOne, RelationId } from "typeorm";
+import { Column, Entity, ManyToOne, OneToMany, RelationId } from "typeorm";
 import { Category } from "./category.entity";
+import { Dish } from "./dish.entity";
 
 
 @InputType("RestaurantInputType", {isAbstract: true}) // DTO를 위한 데코레이터
@@ -56,7 +58,20 @@ export class Restaurant extends CoreEntity {
     )
     owner: User
 
+    @Field(type => [Order])
+    @OneToMany(
+        type => Order, 
+        order => order.restaurant
+    )
+    orders: Order[]
+
     @RelationId((restaurant: Restaurant)=> restaurant.owner) // id값만을 가져오게 해주는 NestJS의 기능
     ownerId: number
 
+    @Field(type => [Dish])
+    @OneToMany(
+        type => Dish, 
+        dish => dish.restaurant // dish에서 restuarant를 저장한 필드명(역참조)
+    )
+    menu: Dish[]
 }
