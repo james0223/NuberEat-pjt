@@ -16,6 +16,7 @@ import { AuthModule } from './auth/auth.module';
 import { Dish } from './restaurants/entities/dish.entity';
 import { OrdersModule } from './orders/orders.module';
 import { Order } from './orders/entities/order.entity';
+import { OrderItem } from './orders/entities/order-item.entity';
 
 @Module({
   imports: [
@@ -56,7 +57,7 @@ import { Order } from './orders/entities/order.entity';
       database: process.env.DB_NAME,
       synchronize: process.env.NODE_ENV !== "prod", // when set to true, TypeORM when connects to database, it migrates the database based on your modules
       logging: process.env.NODE_ENV !== "prod" && process.env.NODE_ENV !== "test", // See on the console what is happening on the database
-      entities: [User, Verification, Restaurant, Category, Dish, Order] // by adding created entities to this list, the tables of those entities can be created in DB
+      entities: [User, Verification, Restaurant, Category, Dish, Order, OrderItem] // by adding created entities to this list, the tables of those entities can be created in DB
     }),
     JwtModule.forRoot({
       privateKey: process.env.PRIVATE_KEY

@@ -57,6 +57,9 @@ export class Restaurant extends CoreEntity {
         {onDelete: "CASCADE"}
     )
     owner: User
+    
+    @RelationId((restaurant: Restaurant)=> restaurant.owner) // id값만을 가져오게 해주는 NestJS의 기능
+    ownerId: number
 
     @Field(type => [Order])
     @OneToMany(
@@ -64,9 +67,6 @@ export class Restaurant extends CoreEntity {
         order => order.restaurant
     )
     orders: Order[]
-
-    @RelationId((restaurant: Restaurant)=> restaurant.owner) // id값만을 가져오게 해주는 NestJS의 기능
-    ownerId: number
 
     @Field(type => [Dish])
     @OneToMany(
