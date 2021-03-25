@@ -45,8 +45,19 @@ import { OrderItem } from './orders/entities/order-item.entity';
     }),
     GraphQLModule.forRoot({ // forRoot configures a root module
       // autoSchemaFile: join(process.cwd(), 'src/schema.gql')
+      installSubscriptionHandlers: true,
       autoSchemaFile: true, // by doing so, this prevents schema.gql file being created within the src folder
-      context: ({req}) => ({user: req["user"]}) // jwtmiddleware에서 request를 먼저 받아 token에서 추출해낸 user를 req["user"]에 넣어 보내주므로 이를 context에 담아 전역변수처럼 활용하는것
+      context: ({ req, connection }) => {
+        // http 프로토콜인지 websocket 프로토콜인지에 따라 다르게 세팅해야 한다
+        // http 프로토콜일 경우 req가 존재한다
+        if (req) { 
+          return {user: req["user"]}
+        } else {
+          // websocket 프로토콜일 경우 connection이 존재한다
+          console.log(connection)
+          return
+        }
+      } // jwtmiddleware에서 request를 먼저 받아 token에서 추출해낸 user를 req["user"]에 넣어 보내주므로 이를 context에 담아 전역변수처럼 활용하는것
     }),
     TypeOrmModule.forRoot({
       type: "postgres",

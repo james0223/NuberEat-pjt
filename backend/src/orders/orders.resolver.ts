@@ -1,4 +1,5 @@
-import { Args, Mutation, Resolver, Query } from "@nestjs/graphql";
+import { Args, Mutation, Resolver, Query, Subscription } from "@nestjs/graphql";
+import { PubSub } from "graphql-subscriptions";
 import { AuthUser } from "src/auth/auth-user.decorator";
 import { Role } from "src/auth/role.decorator";
 import { User } from "src/users/entities/user.entity";
@@ -8,6 +9,8 @@ import { GetOrderInput, GetOrderOutput } from "./dtos/get-order.dto";
 import { GetOrdersInput, GetOrdersOutput } from "./dtos/get-orders.dto";
 import { Order } from "./entities/order.entity";
 import { OrderService } from "./orders.service";
+
+const pubsub = new PubSub()
 
 @Resolver(of => Order)
 export class OrderResolver {
@@ -49,5 +52,14 @@ export class OrderResolver {
         @Args("input") editOrderInput: EditOrderInput
     ): Promise<EditOrderOutput>{
         return this.ordersService.editOrder(user, editOrderInput)
+    }
+
+
+    // graphql의 subscription decorator 에는 이 orderSub 함수가 string을 반환한다고 선언해두었지만 실제로는 asyncIterator을 반환하도록 한다
+    // graphql-subscriptions 패키지를 사용한다
+    @Subscription(returns => String)
+    orderSubscription(){
+        // asyncIterator는 인자로 triggers를 받는데, 이것이 바로 우리가 기다리는 이벤트를 가리킨다
+        return pubsub.asyncIterator()
     }
 }
