@@ -1,5 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { PubSub } from "graphql-subscriptions";
+import { NEW_COOKED_ORDER, NEW_ORDER_UPDATE, NEW_PENDING_ORDER, PUB_SUB } from "src/common/common.constants";
 import { Dish } from "src/restaurants/entities/dish.entity";
 import { RestaurantRepository } from "src/restaurants/repositories/restaurant-pagin.repository";
 import { User, UserRole } from "src/users/entities/user.entity";
@@ -8,6 +10,7 @@ import { CreateOrderInput, CreateOrderOutput } from "./dtos/create-order.dto";
 import { EditOrderInput, EditOrderOutput } from "./dtos/edit-order.dto";
 import { GetOrderInput, GetOrderOutput } from "./dtos/get-order.dto";
 import { GetOrdersInput, GetOrdersOutput } from "./dtos/get-orders.dto";
+import { TakeOrderInput } from "./dtos/take-order.dto";
 import { OrderItem, OrderItemOption } from "./entities/order-item.entity";
 import { Order, OrderStatus } from "./entities/order.entity";
 
@@ -21,7 +24,7 @@ export class OrderService {
         @InjectRepository(Dish)
         private readonly dishes: Repository<Dish>,
         private readonly restaurants: RestaurantRepository,
-
+        @Inject(PUB_SUB) private readonly pubSub: PubSub
     ) {}
 
     async createOrder(
@@ -84,6 +87,10 @@ export class OrderService {
                 total: orderFinalPrice,
                 items: orderItems
             }))
+            // order 생성 후, listen을 위해 pubsub 실행
+            await this.pubSub.publish(NEW_PENDING_ORDER, {
+                pendingOrders: {order, ownerId: restaurant.ownerId }
+            })
             return {
                 ok: true
             }
@@ -214,10 +221,25 @@ export class OrderService {
                     error: "You can't do that"
                 }
             }
-            await this.orders.save([{
+            // createOrder때와는 다르다! 새로운 것을 create하고 save하면 새로 생성된 entity 전체를 return하지만, 기존의 것을 update하기 위한 save는 entity의 모든 정보를 return하지 않는다
+            await this.orders.save({
                 id: orderId,
                 status
-            }])
+            })
+            const newOrder = { ...order, status }
+            // Driver에게 보낼 조리 완료된 Order
+            if (user.role === UserRole.Owner) {
+                if (status === OrderStatus.Cooked){
+                    await this.pubSub.publish(NEW_COOKED_ORDER, {
+                        // 그러므로 위에서 찾은 order에 status값만을 갱신해서 보내준다
+                        cookedOrders: newOrder
+                    })
+                }
+            }
+            // 음식의 상태변화에 따라 모두에게 보내질 Order
+            await this.pubSub.publish(NEW_ORDER_UPDATE, {
+                orderUpdates: newOrder
+            })
             return {
                 ok: true
             }
@@ -225,6 +247,40 @@ export class OrderService {
             return {
                 ok: false,
                 error: "Could not edit order"
+            }
+        }
+    }
+
+    async takeOrder(driver: User, {id: orderId}: TakeOrderInput){
+        try {
+            const order = await this.orders.findOne(orderId)
+            if (!order) {
+                return {
+                    ok: false,
+                    error: "Order not found"
+                }
+            }
+            if (order.driver) {
+                return {
+                    ok: false,
+                    error: "This order already has a driver"
+                }
+            }
+            await this.orders.save({
+                id: orderId,
+                driver
+            })
+            await this.pubSub.publish(NEW_ORDER_UPDATE, {
+                orderUpdate: { ...order, driver}
+            })
+            return {
+                ok: true
+            }
+        }
+        catch {
+            return {
+                ok: false,
+                error: "Could not update order"
             }
         }
     }

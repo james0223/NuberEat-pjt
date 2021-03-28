@@ -12,7 +12,10 @@ export class RestaurantRepository extends Repository<Restaurant>{
                     name: Raw(name => `${name} ILIKE '%${query}%'`) // Raw 쿼리를 실행하게 해줌
                 },
                 skip:(page - 1) * per_page,
-                take: per_page
+                take: per_page,
+                order: {
+                    isPromoted: "DESC"
+                }
             })
             return result
         } catch {

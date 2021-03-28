@@ -25,7 +25,7 @@ export class Order extends CoreEntity {
     @ManyToOne(
         type => User, 
         user => user.orders,
-        {onDelete: "SET NULL", nullable: true}
+        {onDelete: "SET NULL", nullable: true, eager: true}
     )
     customer?: User
 
@@ -36,7 +36,7 @@ export class Order extends CoreEntity {
     @ManyToOne(
         type => User, 
         user => user.rides,
-        {onDelete: "SET NULL", nullable: true}
+        {onDelete: "SET NULL", nullable: true, eager: true}
     )
     driver?: User
 
@@ -47,17 +47,17 @@ export class Order extends CoreEntity {
     @ManyToOne(
         type => Restaurant, 
         restaurant => restaurant.orders,
-        {onDelete: "SET NULL", nullable: true}
+        {onDelete: "SET NULL", nullable: true, eager: true}
     )
     restaurant?: Restaurant
 
     @Field(type => [OrderItem])
-    @ManyToMany(type => OrderItem)
+    @ManyToMany(type => OrderItem, { eager: true })
     @JoinTable() // 주된 참조대상이 되는쪽에만 작성
     items: OrderItem[]
 
     @Column({nullable: true})
-    @Field(type => Float, {nullable: true})
+    @Field(type => Float, { nullable: true })
     @IsNumber()
     total?: number
 

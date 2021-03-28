@@ -163,7 +163,10 @@ export class RestaurantService {
                     category: category,   
                 },
                 take: PER_PAGE,
-                skip: (page - 1) * PER_PAGE // 페이지를 넘어가면 이전것은 skip해야함
+                skip: (page - 1) * PER_PAGE, // 페이지를 넘어가면 이전것은 skip해야함
+                order: {
+                    isPromoted: "DESC"
+                }
             })
             const totalResults = await this.countRestaurants(category)
             return {

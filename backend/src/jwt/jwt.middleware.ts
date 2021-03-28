@@ -9,7 +9,8 @@ import { JwtService } from "./jwt.service";
 // 1. Class방식의 미들웨어
 @Injectable()
 export class JwtMiddleware implements NestMiddleware {
-    constructor(private readonly jwtService: JwtService, 
+    constructor(
+    private readonly jwtService: JwtService, 
     private readonly userService: UserService) {}
     async use(req:Request, res:Response, next: NextFunction){
         if ("x-jwt" in req.headers) {

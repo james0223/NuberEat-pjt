@@ -74,4 +74,12 @@ export class Restaurant extends CoreEntity {
         dish => dish.restaurant // dish에서 restuarant를 저장한 필드명(역참조)
     )
     menu: Dish[]
+
+    @Field(type => Boolean)
+    @Column({default: false})
+    isPromoted: boolean
+
+    @Field(type => Date, {nullable: true})
+    @Column({nullable:true})
+    promotedUntil?: Date
 }

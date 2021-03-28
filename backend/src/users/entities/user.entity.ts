@@ -7,6 +7,7 @@ import { IsBoolean, IsEmail, IsEnum, IsString} from "class-validator"
 import { Restaurant } from "src/restaurants/entities/restaurant.entity"
 import { Order } from "src/orders/entities/order.entity"
 import { OrdersModule } from "src/orders/orders.module"
+import { Payment } from "src/payments/entities/payment.entity"
 
 export enum UserRole {
     Client = "Client", // string을 부여해주면 더 이상 0, 1, 2 로 선언되지 않고 string이 됨
@@ -61,6 +62,13 @@ export class User extends CoreEntity {
         order => order.customer
     )
     orders: Order[]
+
+    @Field(type => [Payment])
+    @OneToMany(
+        type => Payment, 
+        payment => payment.user
+    )
+    payments: Payment[]
 
     @Field(type => [Order])
     @OneToMany(
