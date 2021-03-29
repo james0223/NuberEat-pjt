@@ -9,6 +9,6 @@ async function bootstrap() {
     new ValidationPipe() // validationPipe for validating DTOs
   )
   // app.use(JwtMiddleware) // Middlewares in main.ts is only allowed for functional middlewares, not class middlewares
-  await app.listen(3000);
+  await app.listen(4000);
 }
 bootstrap();
