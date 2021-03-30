@@ -83,7 +83,12 @@
 
    - frontend에서 backend의 schema를 볼 수 있게 해줌
    
-5. `npm i -g apollo && npm i apollo`
+
+
+
+## 4. Apollo Tooling
+
+1. `npm i -g apollo && npm i apollo`
 
    - graphql에 mutation을 보낼 때, typescript로 데이터를 보호하기 위한 dependency - global과 프로젝트 내부 모두 설치
 
@@ -107,10 +112,49 @@
      - 위와 같이 보내면 password: 12345 와 같이 int 형태로 보내져도 막을 방법이 없다
 
      - 이를 해결하기 위한 dependency임
+     
+   - Apollo Tooling은 backend에서 mutation, query, responses, input type들을 전부 다 typescript 정의로 자동으로 생성해준다
+
+     - 즉, apollo로 보내는 data는 백엔드에서 원하는 데이터타입의 데이터임을 확신할 수 있으며
+     - response를 받으면 response 또한 frontend에서 예상하는 타입의 response임을 확신할 수 있다
+
+   - 모든 것은 결국 backend에서 제작한 dto에서 시작된다
+
+     - dto 덕분에 backend에서 요구하는 input의 데이터와 타입을 명시적으로 알 수 있고
+     - dto 덕에 frontend에 보내질 response의 데이터와 타입을 확신할 수 있는 것
+
+2. apollo.config.js 파일 생성
 
 
 
-## 3. React Router Dom
+- apollo는 frontend로 모든 schema를 가져오는 것이 아님
+- 경로가 설정된 파일들의 gql`` 코드만을 체크하고 해당 코드 내부의 graphql mutation이나 query에 해당되는 schema만을 가져오는 것이다
+  - 즉, 코드로 작성된 것에 대해서만 typescript schema를 가져오는 것
+- 경로 설정은 includes로 한다
+
+- ```javascript
+  module.exports = {
+      client: {
+          // includes - 해당 경로에 있는 파일들의 tagname속에 들어있는 코드들 찾아서 필요한 schema들만을 가져온다 - 서버와 연결되는 최초의 순간에 자동으로 schema를 불러오는 query가 실행됨
+          includes: ["./src/**/*.tsx"], // **는 한번만 해도 폴더가 여러개여도 알아서 탐색한다 즉, .src/**/**/*.tsx 와 같이 작성할 필요가 없는 것
+          tagName: "gql",
+          service: {
+              name: "nuber-eats-backend",
+              url: "http://localhost:4000/graphql" // backend의 url
+          }
+      }
+  }
+  ```
+
+
+
+3. `apollo client:codegen mytypes.d.ts --target=typescript` 실행
+   - 자동으로 모든 gql에 대한 interface를 생성해준다
+   - mytypes.d.ts는 생성될 폴더 이름이다
+
+
+
+## 4. React Router Dom
 
 - Most used router dependency for React
 
