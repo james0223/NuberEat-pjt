@@ -121,14 +121,13 @@
    - 모든 것은 결국 backend에서 제작한 dto에서 시작된다
 
      - dto 덕분에 backend에서 요구하는 input의 데이터와 타입을 명시적으로 알 수 있고
-     - dto 덕에 frontend에 보내질 response의 데이터와 타입을 확신할 수 있는 것
+     - dto 덕분에 frontend에 보내질 response의 데이터와 타입을 확신할 수 있는 것
 
 2. apollo.config.js 파일 생성
 
-
-
 - apollo는 frontend로 모든 schema를 가져오는 것이 아님
 - 경로가 설정된 파일들의 gql`` 코드만을 체크하고 해당 코드 내부의 graphql mutation이나 query에 해당되는 schema만을 가져오는 것이다
+  
   - 즉, 코드로 작성된 것에 대해서만 typescript schema를 가져오는 것
 - 경로 설정은 includes로 한다
 
@@ -149,8 +148,20 @@
 
 
 3. `apollo client:codegen mytypes.d.ts --target=typescript` 실행
+   
    - 자동으로 모든 gql에 대한 interface를 생성해준다
+   
    - mytypes.d.ts는 생성될 폴더 이름이다
+   
+   - 이후 생성된 interface는 다음과 같이 사용할 수 있다
+   
+   - ```typescript
+     const [loginMutation, {loading, error, data}] = useMutation<LoginMutation, LoginMutationVariables>(LOGIN_MUTATION)
+     ```
+   
+
+4. 위와 같이 하면 매 source file 옆에 interface 파일이 생성된다. 이를 하나로 묶으려면 --output flat을 추가한다
+   - ``apollo client:codegen --target=typescript --outputFlat``
 
 
 
